@@ -4,7 +4,7 @@ description: "Live application assistant. Reads the open-ended questions Greenho
 seoTitle: "career-ops apply mode — auto-draft answers to ATS application questions"
 icon: Send
 date: "2026-05-19"
-lastModified: "2026-05-19"
+lastModified: "2026-10-01"
 ---
 
 ## What it does
@@ -55,6 +55,20 @@ apply has been field-tested across roughly a dozen Playwright-driven application
 - **Ashby** deduplicates candidates by email per company, so a second application can silently merge into your first. If a report for that company already exists, apply suggests a `+tag` email alias.
 - **Lever** throws a captcha when a checkbox or radio button is clicked programmatically, so apply fills only text fields and hands you the rest to tick.
 - **Workday** ignores values set without real keystrokes, so apply types answers character by character and asks you to review the work-authorization dropdowns before you save.
+
+## Repeated-entry sections
+
+Work Experience, Education, and Languages/Skills sections can repeat labels such as "Job Title," "Company," "Month," and "Year." A page-wide role-and-label lookup can match the wrong entry; start and end dates may also share labels within one entry. This pattern was confirmed on Workday and applies wherever a form repeats entries.
+
+When a form has repeated entries:
+
+1. Count and inspect existing blocks, including prefilled entries and blank placeholders. Map them to the source-backed entries intended for this application, preserve correct existing values, and reuse suitable blank blocks. Add only missing blocks.
+2. Check whether the form permits another blank entry before the current one is complete. If it does, create the missing blocks first; otherwise, fill and verify the current entry before adding the next. Use the section's add-entry control (such as "Add Another" or its localized equivalent), wait for each addition to finish, and confirm the new block exists before clicking again. After an uncertain click, recount instead of retrying blindly.
+3. From a fresh page read, map each intended entry and field to a unique element ref, or use a locator scoped to that entry and field group that resolves to exactly one control. Distinguish start and end date groups as well as entries. Never use role plus label across the page or choose the first match to silence ambiguity. If the target cannot be identified uniquely, stop and ask the candidate rather than guess.
+4. After any add, remove, reorder, or form rerender, including when conditional fields appear, reread the affected section and rebuild the entry-to-field map before using refs again, including for add/remove controls. Do not reuse cached refs or positional indexes from an earlier DOM state. Batch filling never overrides a widget's stricter refresh rule.
+5. Fill at most two or three entries in a batch, then reread and compare every field's value or selection with its intended entry before continuing. Verify a smaller final batch too. Check required fields within each block and correct misplaced values before proceeding. On Workday, use real keystrokes or explicit verification so values register.
+
+Review every entry at the final Review step. The candidate makes the final submission decision; apply stops before clicking Submit, Send, or Apply.
 
 ## Related
 
